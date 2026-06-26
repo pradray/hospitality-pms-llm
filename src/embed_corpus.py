@@ -20,6 +20,7 @@ def load_chunks() -> list[dict]:
     for jsonl_file in [
         CHUNKS_DIR / "api_chunks" / "all_endpoints.jsonl",
         CHUNKS_DIR / "doc_chunks" / "all_doc_chunks.jsonl",
+        CHUNKS_DIR / "postman_chunks" / "all_postman_chunks.jsonl",
     ]:
         with open(jsonl_file) as f:
             for line in f:
