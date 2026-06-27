@@ -45,8 +45,8 @@ EVAL_CONFIGS = {
     # Phase 1
     "3B-base":       {"backend": "llama_cpp", "model": "Qwen2.5-3B-Instruct-Q4_K_M.gguf", "use_rag": False},
     "3B-RAG":        {"backend": "llama_cpp", "model": "Qwen2.5-3B-Instruct-Q4_K_M.gguf", "use_rag": True},
-    "7B-base":       {"backend": "llama_cpp", "model": "Qwen2.5-7B-Instruct-Q4_K_M.gguf", "use_rag": False},
-    "7B-RAG":        {"backend": "llama_cpp", "model": "Qwen2.5-7B-Instruct-Q4_K_M.gguf", "use_rag": True},
+    "7B-base":       {"backend": "llama_cpp", "model": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf", "use_rag": False},
+    "7B-RAG":        {"backend": "llama_cpp", "model": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf", "use_rag": True},
     "API-ceiling":   {"backend": "anthropic", "model": "claude-sonnet-4-20250514",         "use_rag": False},
     # Phase 2 — LoRA variants (model filenames TBD after fine-tuning)
     "3B-LoRA":       {"backend": "llama_cpp", "model": "Qwen2.5-3B-LoRA-Q4_K_M.gguf",     "use_rag": False},
@@ -109,6 +109,8 @@ class RAGPipeline:
     def from_config(cls, config_name: str, **overrides) -> "RAGPipeline":
         cfg = EVAL_CONFIGS[config_name].copy()
         cfg.update(overrides)
+        if "model" in cfg:
+            cfg["model_name"] = cfg.pop("model")
         return cls(config_name=config_name, **cfg)
 
     def _init_llm(self):

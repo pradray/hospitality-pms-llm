@@ -64,14 +64,24 @@ def run_config(config_name: str, tasks: list[dict]) -> list[dict]:
 
 def main():
     parser = argparse.ArgumentParser(description="Run benchmark evaluation")
-    parser.add_argument("--benchmark", required=True, help="Path to benchmark JSONL")
+    parser.add_argument("--benchmark", help="Path to benchmark JSONL (default: data/benchmark_dev.jsonl)")
     parser.add_argument("--configs", help="Comma-separated config names (e.g. 3B-base,3B-RAG)")
     parser.add_argument("--all", action="store_true", help="Run all configs")
-    parser.add_argument("--split", default="dev", help="Benchmark split: dev or test")
+    parser.add_argument("--split", default="dev", choices=["dev", "test", "full"],
+                        help="Benchmark split (default: dev). Sets benchmark path if --benchmark not given.")
+    parser.add_argument("--limit", type=int, help="Limit number of tasks (for quick testing)")
     args = parser.parse_args()
 
-    tasks = load_benchmark(args.benchmark)
-    print(f"Loaded {len(tasks)} benchmark tasks")
+    if args.benchmark:
+        benchmark_path = args.benchmark
+    else:
+        split_map = {"dev": "benchmark_dev.jsonl", "test": "benchmark_test.jsonl", "full": "benchmark.jsonl"}
+        benchmark_path = str(PROJECT_ROOT / "data" / split_map[args.split])
+
+    tasks = load_benchmark(benchmark_path)
+    if args.limit:
+        tasks = tasks[:args.limit]
+    print(f"Loaded {len(tasks)} benchmark tasks from {Path(benchmark_path).name}")
 
     if args.all:
         config_names = list(EVAL_CONFIGS.keys())
