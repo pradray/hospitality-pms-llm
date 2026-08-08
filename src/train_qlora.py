@@ -171,6 +171,13 @@ def train(args):
         num_train_epochs=args.epochs,
         max_steps=args.max_steps,
         per_device_train_batch_size=args.batch_size,
+        # Evaluation is what actually OOMs this card, not training. The default
+        # eval batch size of 8 pads 8 long examples into one (8, ~3.8k) batch and
+        # the loss upcasts logits to fp32 -> a single 17.3 GiB allocation on a
+        # 14.5 GB card. Batch 1 + prediction_loss_only (which stops Trainer from
+        # accumulating logits for every eval example) keeps it well inside VRAM.
+        per_device_eval_batch_size=1,
+        prediction_loss_only=True,
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.lr,
         lr_scheduler_type="cosine",
