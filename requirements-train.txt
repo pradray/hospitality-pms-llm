@@ -11,7 +11,9 @@ trl==0.21.0
 peft==0.15.2
 accelerate==1.14.0
 datasets==5.0.1
-bitsandbytes==0.45.0
+# bitsandbytes must be >= 0.48: earlier releases import `triton.ops`, which was
+# removed in the triton 3.x that ships with torch 2.8 (verified failure on the T4).
+bitsandbytes>=0.48
 sentencepiece==0.2.0
 protobuf==5.28.3
 # torch: use the CUDA build already present on the Lightning.ai studio image.

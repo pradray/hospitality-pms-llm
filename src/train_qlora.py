@@ -64,6 +64,8 @@ def parse_args():
     p.add_argument("--output-dir", default=str(ADAPTER_DIR))
     p.add_argument("--merged-dir", default=str(MERGED_DIR))
     p.add_argument("--resume", action="store_true")
+    p.add_argument("--max-steps", type=int, default=-1,
+                   help="Cap training steps (smoke-testing the GPU path cheaply).")
     return p.parse_args()
 
 
@@ -164,6 +166,7 @@ def train(args):
     sft_config = SFTConfig(
         output_dir=args.output_dir,
         num_train_epochs=args.epochs,
+        max_steps=args.max_steps,
         per_device_train_batch_size=args.batch_size,
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.lr,
