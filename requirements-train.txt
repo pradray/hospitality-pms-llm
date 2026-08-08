@@ -1,0 +1,18 @@
+# Phase 2 QLoRA fine-tuning deps — install on the Lightning.ai T4 only.
+# (Not installed in the local .venv: the MacBook cannot train this.)
+#
+# Pinned for reproducibility. These exact versions were validated against
+# src/train_qlora.py: SFTConfig exposes `max_length` and `completion_only_loss`,
+# and SFTTrainer takes `processing_class`. Older TRL (<=0.12) uses the legacy
+# `max_seq_length`/`tokenizer` names and has no completion-only loss — the script
+# will NOT run on those.
+transformers==4.55.2
+trl==0.21.0
+peft==0.15.2
+accelerate==1.14.0
+datasets==5.0.1
+bitsandbytes==0.45.0
+sentencepiece==0.2.0
+protobuf==5.28.3
+# torch: use the CUDA build already present on the Lightning.ai studio image.
+# Install the rest with:  pip install -r requirements-train.txt

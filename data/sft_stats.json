@@ -1,0 +1,27 @@
+{
+  "seed": 42,
+  "total": 1070,
+  "train": 1017,
+  "val": 53,
+  "by_category": {
+    "api_orchestration": 866,
+    "config_advisory": 111,
+    "troubleshooting": 93
+  },
+  "by_module": {
+    "housekeeping": 119,
+    "crm": 261,
+    "reservations": 340,
+    "front_office": 307,
+    "multi": 43
+  },
+  "sources": {
+    "api": 650,
+    "postman": 150,
+    "benchmark_upweighted": 278
+  },
+  "dropped_ungrounded": 8,
+  "char_len_min": 1427,
+  "char_len_median": 8114,
+  "char_len_max": 14492
+}
