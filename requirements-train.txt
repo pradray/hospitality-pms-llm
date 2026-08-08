@@ -18,3 +18,6 @@ sentencepiece==0.2.0
 protobuf==5.28.3
 # torch: use the CUDA build already present on the Lightning.ai studio image.
 # Install the rest with:  pip install -r requirements-train.txt
+# Fused linear+cross-entropy loss. Required on the T4: without it the 151k-vocab
+# logits tensor at 4.4k context OOMs a 14.5 GB card.
+liger-kernel

@@ -66,6 +66,9 @@ def parse_args():
     p.add_argument("--resume", action="store_true")
     p.add_argument("--max-steps", type=int, default=-1,
                    help="Cap training steps (smoke-testing the GPU path cheaply).")
+    p.add_argument("--no-liger", dest="liger", action="store_false",
+                   help="Disable the fused Liger loss (needs more VRAM).")
+    p.set_defaults(liger=True)
     return p.parse_args()
 
 
@@ -182,6 +185,11 @@ def train(args):
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
         max_length=args.max_seq_length,
+        # Fused linear+cross-entropy. Without it the loss materialises a
+        # (1, seq, 151665) logits tensor and upcasts it to fp32 — at 4.4k tokens
+        # that alone OOMs a 14.5 GB T4 (observed: a single 17.3 GiB allocation).
+        # Liger computes the loss in chunks and never builds full logits.
+        use_liger_kernel=args.liger,
         # Do NOT pack: packing concatenates unrelated examples across document
         # boundaries, which for a grounding objective would let one example's
         # answer sit next to another's context. Exactly the confusion we're curing.
