@@ -110,10 +110,19 @@ def train(args):
     vram = torch.cuda.get_device_properties(0).total_memory / 1e9
     print(f"GPU: {gpu} ({vram:.1f} GB)")
 
-    # Turing (T4) has no bf16; Ampere+ does. Pick the right compute dtype.
-    supports_bf16 = torch.cuda.is_bf16_supported()
+    # Pick the compute dtype from the *hardware* capability, not from
+    # torch.cuda.is_bf16_supported(): on torch >= 2.6 that helper counts software
+    # emulation and returns True even on a T4 (capability 7.5, Turing), which has
+    # no bf16 tensor cores. Trusting it would silently train through emulated
+    # bf16 — far slower and numerically worse than plain fp16. Native bf16 starts
+    # at Ampere (8.0).
+    major, minor = torch.cuda.get_device_capability(0)
+    supports_bf16 = major >= 8
     compute_dtype = torch.bfloat16 if supports_bf16 else torch.float16
-    print(f"compute dtype: {compute_dtype} (bf16 supported: {supports_bf16})")
+    print(
+        f"compute capability: {major}.{minor} | native bf16: {supports_bf16} "
+        f"| compute dtype: {compute_dtype}"
+    )
 
     train_ds, val_ds = load_datasets()
 
