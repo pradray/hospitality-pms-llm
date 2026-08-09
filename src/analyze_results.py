@@ -225,19 +225,83 @@ def main():
             "mean_latency_s": float(lat),
         }
 
-    # ---- per-config × category ----
+    # ---- per-config × category, WITH intervals ----
+    # Breakdowns cut 46 tasks into cells of ~13-17. A bare mean there invites
+    # over-reading; the CI shows how little these cells actually pin down.
     print("\n" + "=" * 92)
-    print("MEAN SCORE BY CONFIG x CATEGORY")
+    print("MEAN SCORE BY CONFIG x CATEGORY (bootstrap 95% CI)")
     print("=" * 92)
     cats = sorted({r["category"] for r in rows})
-    print(f"{'Config':<16}" + "".join(f"{c:>22}" for c in cats))
+    print(f"{'Config':<16}" + "".join(f"{c:>25}" for c in cats))
     print("-" * 92)
     for cfg in sorted(by_config):
         line = f"{cfg:<16}"
         for c in cats:
             sc = [r["score"] for r in by_config[cfg] if r["category"] == c]
-            line += f"{(f'{np.mean(sc):.2f} (n={len(sc)})' if sc else '-'):>22}"
+            if sc:
+                m, (lo, hi) = boot_mean_ci(sc, n_boot=2000, rng=rng)
+                line += f"{f'{m:.2f} [{lo:.1f},{hi:.1f}] n={len(sc)}':>25}"
+            else:
+                line += f"{'-':>25}"
         print(line)
+
+    # ---- ranking across configs, per task type ----
+    # Which system is best depends on the task type, so a single overall mean is
+    # misleading. Friedman tests whether the configs differ at all within a
+    # category (non-parametric, paired across tasks); mean rank orders them.
+    print("\n" + "=" * 92)
+    print("TASK-TYPE RANKING (mean rank across tasks; 1 = best)")
+    print("=" * 92)
+    ranked_cfgs = sorted(by_config)
+    for c in cats + ["ALL"]:
+        task_ids = sorted({r["task_id"] for r in rows
+                           if c == "ALL" or r["category"] == c})
+        mat = []
+        for t in task_ids:
+            row = []
+            for cfg in ranked_cfgs:
+                s = scores_by_config[cfg].get(t)
+                if s is None:
+                    row = None
+                    break
+                row.append(s)
+            if row:
+                mat.append(row)
+        if len(mat) < 3:
+            continue
+        arr = np.array(mat, dtype=float)
+        # average ranks, high score = rank 1
+        ranks = np.apply_along_axis(
+            lambda r: stats.rankdata(-r, method="average"), 1, arr)
+        mean_ranks = ranks.mean(axis=0)
+        try:
+            fp = stats.friedmanchisquare(*[arr[:, i] for i in range(arr.shape[1])]).pvalue
+        except ValueError:
+            fp = float("nan")
+        order = np.argsort(mean_ranks)
+        print(f"\n  {c}  (n={len(mat)} tasks, Friedman p={fp:.4g})")
+        for pos, i in enumerate(order, 1):
+            print(f"    {pos:>2}. {ranked_cfgs[i]:<18} mean rank {mean_ranks[i]:.2f}"
+                  f"   mean score {arr[:, i].mean():.2f}")
+
+    # ---- latency distribution ----
+    # Means hide the tail; a p95 of 60s is a different product from a mean of 8s.
+    print("\n" + "=" * 92)
+    print("LATENCY DISTRIBUTION (seconds) — and answer length, which drives it")
+    print("=" * 92)
+    print(f"{'Config':<16}{'median':>8}{'p90':>8}{'p95':>8}{'max':>8}{'mean':>8}"
+          f"{'chars(med)':>12}{'ms/char':>9}")
+    print("-" * 92)
+    for cfg in sorted(by_config):
+        lat = np.array([r.get("latency_seconds", 0) for r in by_config[cfg]], dtype=float)
+        chars = np.array([len(r.get("generated_answer", "") or "")
+                          for r in by_config[cfg]], dtype=float)
+        mspc = 1000 * lat.sum() / chars.sum() if chars.sum() else float("nan")
+        print(f"{cfg:<16}{np.median(lat):>8.1f}{np.percentile(lat,90):>8.1f}"
+              f"{np.percentile(lat,95):>8.1f}{lat.max():>8.1f}{lat.mean():>8.1f}"
+              f"{np.median(chars):>12.0f}{mspc:>9.1f}")
+    print("\n  ms/char normalises for verbosity: a config can look 'fast' purely")
+    print("  because it emits shorter answers.")
 
     # ---- paired comparisons ----
     comparisons = []

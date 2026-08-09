@@ -1,0 +1,580 @@
+item,category,question,reference_answer,generated_answer,human_score_1_5,human_notes
+1,config_advisory,What room conditions can be set for housekeeping in OPERA Cloud?,"Room conditions include Clean, Dirty, Inspected, Pickup, and Out of Order/Out of Service. These are managed through the getRoomConditions and setRoomCondition APIs.","In OPERA Cloud, the housekeeping room conditions that can be set include:
+
+1. Inspected (IP): An optional status to indicate a clean room has been inspected by a supervisor.
+2. Clean (CL): Indicates the room has been serviced and is clean.
+3. Pickup (PU): An optional status to indicate a minimum ""touch-up"" housekeeping service is required.
+4. Dirty (DI): Indicates the room is dirty and requires a cleaning service.
+5. Turndown: Indicates if a turndown service is ""Required,"" ""NotRequired,"" or ""Completed.""
+
+These statuses help in managing the housekeeping tasks and ensuring that rooms are serviced appropriately based on their condition.",,
+2,config_advisory,What OPERA Control must be active to enable the guest service status feature for housekeeping?,"The 'Guest Service Status' OPERA Control must be active. This enables tracking of guest service preferences and room servicing status, allowing guests to indicate whether they want their room serviced or prefer privacy (Do Not Disturb / Make Up Room).","**Guest Service Status** (Function)
+
+It must be enabled in OPERA Cloud under: **Administration > Enterprise > OPERA Controls**.",,
+3,troubleshooting,"A guest has back-to-back reservations but the system is requiring a full checkout and re-checkin between stays, causing billing issues. What configuration is missing?",1. The 'Back-to-Back Handling for Linked Reservations' OPERA Control must be active. 2. The two reservations must be linked in the system. 3. The reservations must have consecutive dates with no gap. 4. Room retention settings should be configured to keep the same room across both stays. 5. Folio transfer rules should be set up to handle billing continuity.,"To address the issue of a guest having back-to-back reservations with a full checkout and re-check-in causing billing issues, you need to ensure that the system is configured to handle extended stays without requiring a full checkout and re-check-in. This can typically be achieved by configuring the system to recognize and handle extended stays or multi-day stays correctly.
+
+One specific configuration setting that might be missing or needs adjustment is related to the ""Extended Stay"" or ""Multi-Day Stay"" functionality within the Oracle OPERA Cloud PMS. Here is a possible configuration setting name that you might need to adjust:
+
+- **Setting Name**: `ExtendedStayHandling`
+- **Setting Value**: `Enable`
+
+Here is an example of how you might configure this setting:
+
+```plaintext
+PUT /api/v1/settings/ExtendedStayHandling HTTP/1.1
+Host: your-hostname
+Authorization: Bearer your-access-token
+Content-Type: application/json
+
+{
+  ""value"": ""Enable""
+}
+```
+
+This configuration setting should be set to `Enable` to allow the system to recognize and handle extended stays without requiring a full checkout and re-check-in. Ensure that the system is also configured to correctly process billing for extended stays, such as applying the appropriate room rates and taxes for the duration of the stay.
+
+Additionally, you may need to adjust other related settings such as `CheckoutHandling` and `CheckinHandling` to ensure they are configured appropriately for extended stays:
+
+- **Setting Name**: `CheckoutHandling`
+- **Setting Value**: `Skip` (or another appropriate value)
+
+- **Setting Name**: `CheckinHandling`
+- **Setting Value**: `Skip` (or another appropriate value)
+
+Here are examples of how you might configure these settings:
+
+```plaintext
+PUT /api/v1/settings/CheckoutHandling HTTP/1.1
+Host: your-hostname
+Authorization: Bearer your-access-token
+Content-Type: application/json
+
+{
+  ""value"": ""Skip""
+}
+```
+
+```plaintext
+PUT /api/v1/settings/CheckinHandling HTTP/1.1
+Host: your-hostname
+Authorization: Bearer your-access-token
+Content-Type: application/json
+
+{
+  ""value"": ""Skip""
+}
+```
+
+By adjusting these settings, you should be able to resolve the issue of back-to-back reservations causing billing issues due to full checkouts and re-check-ins.",,
+4,config_advisory,What OPERA Control must be active to enable the guest service status feature for housekeeping?,"The 'Guest Service Status' OPERA Control must be active. This enables tracking of guest service preferences and room servicing status, allowing guests to indicate whether they want their room serviced or prefer privacy (Do Not Disturb / Make Up Room).","According to the provided context, the Guest Service Status feature for housekeeping must be enabled via the OPERA Control named ""Guest Service Status"" in the OPERA Cloud: Administration > Enterprise > OPERA Controls section.",,
+5,config_advisory,What OPERA Control must be active to enable the guest service status feature for housekeeping?,"The 'Guest Service Status' OPERA Control must be active. This enables tracking of guest service preferences and room servicing status, allowing guests to indicate whether they want their room serviced or prefer privacy (Do Not Disturb / Make Up Room).","To enable the guest service status feature for housekeeping in Oracle OPERA Cloud PMS, the `Guest Service Status` feature must be enabled in the OPERA Control. This feature is typically managed through the OPERA Control's configuration settings.
+
+Here is the general path to find and enable this feature:
+
+1. **Login to OPERA Control**: Access the OPERA Control interface where you can manage various features and settings.
+
+2. **Navigate to Configuration**: Look for a section or module that allows you to configure features such as guest services, housekeeping, etc.
+
+3. **Enable Guest Service Status Feature**: Find the specific setting or feature related to guest service status. This might be under a section like ""Guest Services,"" ""Housekeeping,"" or a similar category.
+
+4. **Activate the Feature**: Activate the `Guest Service Status` feature by setting it to `Enabled` or `Active`.
+
+Since the exact setting name and path can vary based on the version of OPERA Control and the specific implementation, you may need to consult the documentation or support resources provided by Oracle for the exact setting name and configuration steps.
+
+For example, if the feature is enabled through a setting named `GuestServiceStatus`, you would navigate to the configuration section, find the `GuestServiceStatus` setting, and set it to `Active` or `Enabled`.
+
+Here is a hypothetical example of how you might find and activate this feature:
+
+- **HTTP Endpoint**: Not applicable for configuration settings, but you might use an API endpoint to check the status or update the setting.
+- **Setting Name**: `GuestServiceStatus`
+- **Configuration Path**: `Configuration -> Guest Services -> Guest Service Status -> Set to Active/Enabled`
+
+Please replace `GuestServiceStatus` with the actual setting name as per your OPERA Control setup.",,
+6,troubleshooting,A hotel reports that their HSIA (high-speed internet) integration is intermittently failing to verify guests. The integration uses room number and last name to look up reservations before granting internet access. What could be causing the failures?,"1. Multiple reservations in the same room (shared rooms/suites) — the lookup returns multiple matches. 2. Guest name mismatch — name on reservation differs from what guest enters (shortened names, special characters, aliases). 3. Walk-in guests may not have the correct name on file. 4. Room moves — guest was moved to a different room but the system has the old room number. 5. Early checkout/late checkout timing — reservation may have been checked out. 6. The reservation search API may be case-sensitive or require exact matching.","The provided context does not contain information about HSIA integrations, reservation lookup by room number and last name, or guest verification for internet access. I can’t diagnose the intermittent failures from what’s here.
+
+To troubleshoot effectively, you would typically need details such as:
+- Which OHIP API is being called (method and path)
+- Sample request/response including status codes and bodies (with credentials redacted)
+- Whether failures correlate with specific HTTP errors (e.g. 401/403 token or access issues, 404, 406 accept header, etc.)
+
+If you can share the API endpoint, error responses, and how the lookup is built, I can help interpret them against OHIP error handling and troubleshooting guidance.",,
+7,config_advisory,What room conditions can be set for housekeeping in OPERA Cloud?,"Room conditions include Clean, Dirty, Inspected, Pickup, and Out of Order/Out of Service. These are managed through the getRoomConditions and setRoomCondition APIs.","In OPERA Cloud, the following **housekeeping-related room conditions/statuses** can be set:
+
+### Housekeeping Room Status (cleaning status)
+- **Inspected (IP)** — Optional; clean room inspected by a supervisor (requires **Inspected Status** OPERA Control)
+- **Clean (CL)** — Room has been serviced and is clean
+- **Pickup (PU)** — Optional; minimum “touch-up” service required (requires **Pickup Status** OPERA Control)
+- **Dirty (DI)** — Room is dirty and requires cleaning
+
+### Turndown Status
+(Available when the **Turndown** OPERA Control is active)
+- **Required**
+- **NotRequired**
+- **Completed**
+
+### Guest Service Status
+(Available when the **Guest Service Status** OPERA Control is active; shown for occupied rooms)
+- **Make Up Room (MUR)**
+- **Do Not Disturb (DND)**
+
+### Out of Order / Out of Service
+- **Out of Service (OS)** — Unavailable for occupancy but remains in inventory availability (requires **Out of Service** OPERA Control)
+- **Out of Order (OO)** — Not available for assignment and removed from inventory availability (requires **Out of Order** OPERA Control)
+
+### Other related housekeeping indicators
+- **Discrepant Rooms** housekeeping status: **Vacant** or **Occupied** (requires **Discrepant Rooms** OPERA Control)
+- **Prioritize** — Places the room at the top of the Task Sheet cleaning list
+
+These are managed in Room Management (and via OPERA Cloud Mobile Task Companion where the related controls/tasks are enabled).",,
+8,api_orchestration,How do you retrieve the folio (bill) for a reservation?,GET /fof/v1/hotels/{hotelId}/reservations/{reservationId}/folios using getFolios,"To retrieve the folio (bill) for a reservation using the Oracle OPERA Cloud PMS, you would typically use a GET request to the following API endpoint:
+
+```http
+GET /api/v1/reservations/{reservationId}/folio
+```
+
+Here, `{reservationId}` should be replaced with the actual ID of the reservation for which you want to retrieve the folio.
+
+Please note that you might need to authenticate your request using the appropriate API key or OAuth token. Additionally, ensure that the API endpoint and version (`/api/v1`) are correct for your specific setup.
+
+For more detailed configuration and authentication settings, you might need to refer to the specific documentation provided by Oracle for your OPERA Cloud PMS instance.",,
+9,troubleshooting,"A guest has back-to-back reservations but the system is requiring a full checkout and re-checkin between stays, causing billing issues. What configuration is missing?",1. The 'Back-to-Back Handling for Linked Reservations' OPERA Control must be active. 2. The two reservations must be linked in the system. 3. The reservations must have consecutive dates with no gap. 4. Room retention settings should be configured to keep the same room across both stays. 5. Folio transfer rules should be set up to handle billing continuity.,"Based on the provided context, the missing configuration is the ""Back-to-Back Handling for Linked Reservations"" OPERA Control. When this control is active, the system prompts to check-in the back-to-back arrival reservation when a due out reservation has a back-to-back arrival reservation. This can cause issues with billing if the system requires a full checkout and re-checkin between stays.
+
+To resolve the issue, you need to deactivate the ""Back-to-Back Handling for Linked Reservations"" OPERA Control. Here’s how you can do it:
+
+1. Log in to the OPERA Cloud interface.
+2. Navigate to the OPERA Control settings.
+3. Find the ""Back-to-Back Handling for Linked Reservations"" control.
+4. Deactivate the control.
+
+By deactivating this control, the system will not require a full checkout and re-checkin between back-to-back reservations, which should help with the billing issues.",,
+10,api_orchestration,How do you retrieve a guest profile using the OPERA Cloud API?,GET /crm/v1/guests/{guestId} using getGuest or GET /crm/v1/guests to search with query parameters using getGuests,"To retrieve a guest profile using the OPERA Cloud API, you would use the following endpoint:
+
+```http
+GET /crm/v1/guests/{guestId}
+```
+
+This endpoint requires the following parameters:
+
+- `guestId` (path, string, required): The unique OPERA internal ID used to find the guest/contact/employee profile in OPERA.
+- `hotelId` (query, string, optional): The hotel code used to filter hotel-specific information regarding the profile.
+- `fetchInstructions` (query, array, optional): Room ownership information associated with the profile.
+- `x-externalsystem` (header, string, optional): The external system code.
+
+Here is an example of how you might construct the request:
+
+```http
+GET /crm/v1/guests/12345?hotelId=HOTELABC&fetchInstructions=[1,2,3]&x-externalsystem=EXTSYS123
+```
+
+This request would retrieve the guest profile for the guest with the ID `12345`, filtered by the hotel code `HOTELABC`, and including fetch instructions `[1,2,3]`. The `x-externalsystem` header is used to specify the external system code.
+
+The response schema provided includes a detailed structure of the data returned, which includes various properties such as addresses, telephones, emails, and more.",,
+11,api_orchestration,What API call retrieves all in-house reservations for a given hotel?,GET /rsv/v1/hotels/{hotelId}/reservations with query parameter reservationStatuses=InHouse,`GET /inHouseReservations/inHouseReservations` (inInHouseReservationsInHouseReservationOperations API) using the inInHouseReservationsInHouseReservationOperations listInHouseReservationsIns operation.,,
+12,troubleshooting,Housekeeping task sheets are being generated but the credit allocations seem wrong — suites are getting the same cleaning time as standard rooms. What configuration should be checked?,"1. The 'Housekeeping Credits' OPERA Control must be active. 2. Room type credit values must be configured — each room type should have appropriate credit weights (e.g., suite = 2 credits, standard = 1 credit). 3. The 'Advanced Task Sheet' control should be active for credit-based distribution. 4. Attendant capacity (max credits per shift) must be configured.","The credit imbalance almost always comes down to how **Housekeeping Credits** are calculated and where those values are defined. Suites and standard rooms will get the same effort allocation if credits are missing or identical at the source used by your property.
+
+## What to check
+
+### 1. Housekeeping Credits OPERA Control
+This control decides *where* credits come from. Path conceptually: OPERA Controls → the **Housekeeping Credits** setting.
+
+Available options (from the docs):
+
+| Value | Credits come from |
+|---|---|
+| **Room** | Credits on each room (Rooms Inventory) |
+| **Facility** | Credits on the task schedule (Housekeeping Task Scheduling) |
+| **Room_Task_Rule** | Room credits × **Credit Weighing** on each task code |
+
+Confirm which mode you are in before changing anything else.
+
+### 2. Room-level credits (Room or Room_Task_Rule)
+If the control is **Room** or **Room_Task_Rule**, open room configuration (**Configuring Rooms Inventory**) and compare credit values on suites vs standard rooms.  
+Suites need a **higher credit value** than standard rooms; if both are blank or the same number, task sheets will treat them equally.
+
+### 3. Task Credit Weighing (Room_Task_Rule only)
+When **Housekeeping Credits** = `Room_Task_Rule`:
+
+- Administration → Inventory → Task Sheets → **Tasks**
+- Each task code has **Credit Weighing** (used to multiply the room credit)
+
+If weighing is unset or identical across tasks, differentiation will be weak even when room credits differ.
+
+### 4. Advanced Credit Rules (optional extra)
+When the **Advanced Credit Rules** OPERA Control is active and mode is `Room_Task_Rule`, scheduled **Credit Rules** are *added on top of* the room/task calculation.  
+
+Configure via: **Administration → Inventory → Credit Rules**
+
+Rule types can include Facility (Task Codes), Travel, Specials, Miscellaneous, Inventory Items.  
+Rules are **cumulative** (overlapping days of week add together).  
+Also check **Apply To** (House vs Building) and **Automatically Apply On** (days of week).
+
+If you expected suites to pick up extra credits via Facility/Special rules and they do not, verify those rules exist, are active, and apply to the right property/building/days.
+
+### 5. Facility task schedule credits (Facility mode only)
+If **Housekeeping Credits** = `Facility`, credits are defined on the housekeeping task schedule, not on the room. In that mode, room type alone will not change credits unless the schedule/facility setup differs.
+
+---
+
+## Practical order of troubleshooting
+
+1. Note the value of **Housekeeping Credits**.
+2. If `Room` or `Room_Task_Rule` → fix **suite vs standard room credit** values in Rooms Inventory (most common cause of your symptom).
+3. If `Room_Task_Rule` → also verify **Credit Weighing** on task codes (e.g. FULL vs LIGHT).
+4. If Advanced Credit Rules are in use → review **Credit Rules** for gaps or unintended cumulative values.
+5. Regenerate task sheets after changes and confirm attendant credit totals.
+
+**Most likely fix for “suites = standard rooms”:** room credit values are the same (or not set) under Rooms Inventory while Housekeeping Credits is `Room` or `Room_Task_Rule`.",,
+13,api_orchestration,What are the required headers for every Oracle Hospitality API call?,1. Authorization: Bearer <oAuth Token> — obtained through the OAuth API. 2. x-app-key: <ApplicationKey> — unique per registered application. 3. x-hotelid: <HotelId> — the property code.,"The required headers for every Oracle Hospitality API call are as follows:
+
+1. **x-app-key**: The application key must be passed in the ""x-app-key"" header of every request.
+2. **x-hotelid**: A hotel (or property) code from the chain to which you have access must be supplied.
+3. **Authorization**: A header ""Authorization"" that includes the oAuth token obtained through the authentication process.
+
+The exact headers are:
+
+- `x-app-key: <ApplicationKey>`
+- `x-hotelid: <HotelId>`
+- `Authorization: Bearer <oAuth Token>`
+
+These headers must be included in every API call to the Oracle Hospitality APIs.",,
+14,troubleshooting,A partner system receives a 404 error when trying to GET a reservation by external ID. What are the likely causes?,1. The reservationExternalId does not exist or is incorrect. 2. The externalSystemCode is wrong or does not match the registered system. 3. The reservation was deleted or purged. 4. The hotelId does not match the hotel where the reservation was created.,"A 404 error when trying to GET a reservation by external ID typically indicates that the requested resource (reservation) does not exist or the system cannot find it. Here are some likely causes for this error:
+
+1. **Invalid External ID**: The external ID provided in the request might be incorrect or not valid for the specific reservation. Ensure that the external ID is correct and matches the reservation in the system.
+
+2. **Reservation Not Found**: The reservation might have been deleted or is no longer associated with the hotel. Check if the reservation still exists in the system.
+
+3. **Incorrect Hotel ID**: The hotel ID provided in the request might not match the hotel where the reservation is located. Ensure that the hotel ID is correct and associated with the reservation.
+
+4. **External System Code Mismatch**: The external system code provided in the request might not match the external system from which the request is coming. Ensure that the external system code is correct and matches the system exchanging information with OPERA.
+
+5. **Query Parameters Missing or Incorrect**: Some required query parameters might be missing or incorrect. Ensure that all required parameters like `reservationExternalId`, `externalSystemCode`, and `hotelId` are provided and correctly formatted.
+
+6. **System Configuration Issues**: There might be issues with the system configuration, such as the external system not being properly configured or integrated with OPERA. Check the system configuration settings and ensure that the external system is correctly set up.
+
+7. **Data Consistency Issues**: There might be inconsistencies in the data between the partner system and OPERA. Ensure that the data in the partner system is up-to-date and consistent with OPERA.
+
+To troubleshoot, you should verify the correctness of the external ID, hotel ID, and external system code, and ensure that the reservation exists and is correctly associated with the hotel and external system. Additionally, checking the system configuration and data consistency can help identify and resolve the issue.",,
+15,troubleshooting,A channel manager receives intermittent 429 Too Many Requests errors when syncing availability updates. How should the integration handle this?,1. Implement exponential backoff with jitter when receiving 429 responses. 2. Check the Retry-After header in the response for the recommended wait time. 3. Batch availability updates into fewer API calls instead of per-room-per-date calls. 4. Consider using the async API endpoints for bulk operations. 5. Review the OHIP rate limits for the application tier and request a limit increase if needed. 6. Cache availability data locally and sync only changes rather than full refreshes.,"**Handle 429s with Retry-After + exponential backoff (with jitter), client-side throttling, queuing, and more efficient availability updates.**
+
+Intermittent `429 Too Many Requests` responses from OHIP indicate the channel manager is exceeding the platform’s rate limits (or a burst threshold) on the availability/inventory APIs. The integration must treat these as transient and recoverable; do not drop the updates or hammer the API.
+
+### 1. Immediate response handling (required)
+On every `429`:
+- Read and honor the `Retry-After` header (seconds or HTTP-date) when present — this is the authoritative wait time.
+- If `Retry-After` is absent, apply exponential backoff with jitter, for example:
+  - Base delay: 1–5 seconds
+  - Multiplier: 2x per attempt
+  - Cap: 60–120 seconds
+  - Full jitter to avoid thundering-herd retries across instances
+- Limit retries (e.g., 3–5 attempts) then dead-letter/quarantine the payload for later replay or alerting.
+- Log correlation IDs, path, hotel/property ID, timestamp, and remaining rate-limit headers for diagnostics.
+
+Do **not** retry immediately or with a fixed tight loop.
+
+### 2. Proactive client-side rate control
+- Track OHIP rate-limit response headers (commonly `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` or equivalent) and slow down **before** you hit 0 remaining.
+- Enforce an application-level token bucket / sliding-window limiter per property (and globally) that stays safely under documented OHIP limits.
+- Serialize or tightly concurrency-limit availability calls per hotel; unbounded parallel syncs are a common cause of intermittent 429s.
+
+### 3. Queue and decouple
+- Persist outbound availability updates (ARI) in a durable queue.
+- Let a controlled worker drain the queue at a sustainable rate.
+- On 429, re-queue with the computed delay rather than failing the business operation.
+- Make updates idempotent so retries are safe.
+
+### 4. Reduce call volume for availability syncs
+- Prefer differential/delta inventory updates over full-snapshot pushes whenever the API and your business logic allow.
+- Batch dates/rooms/rate plans into fewer, larger requests where the OHIP inventory/availability endpoints support it.
+- Avoid chatty per-date or per-room-type chatter; collapse overlapping updates.
+- Back off non-critical full refreshes when you are near limits; keep tight sync only for genuine changes.
+- Cache and suppress no-op updates (same availability already sent).
+
+### 5. Operational practices
+- Monitor 429 rate, backoff events, queue depth, and lag to OTA/channel delivery SLAs.
+- Alert when retries are exhausted or lag exceeds threshold.
+- Ensure all calls include proper auth, `x-hotelId` (or equivalent), and correlation headers so Oracle support can trace bursts.
+- If 429s persist after backoff + throttling + batching, open an SR with Oracle Hospitality including timestamps, hotel IDs, client ID, and sample correlation IDs — limits can sometimes be reviewed for legitimate high-volume channel managers.
+
+### Minimal retry pseudocode
+```text
+attempts = 0
+max_attempts = 5
+on 429:
+  attempts += 1
+  if attempts > max_attempts → dead-letter + alert
+  delay = Retry-After header value OR (min(cap, base * 2^attempts) + jitter)
+  re-queue update with delay
+```
+
+### Summary checklist
+- Honor `Retry-After` → exponential backoff + jitter → limited retries  
+- Client-side throttling using rate-limit headers  
+- Durable queue + idempotent workers  
+- Delta/batch availability calls; eliminate chatter  
+- Monitor, alert, and engage Oracle only after the above are in place  
+
+This pattern keeps the channel manager resilient to intermittent OHIP throttling while protecting both sides from overload and minimizing lost or delayed availability updates.",,
+16,config_advisory,What configuration controls wake-up call scheduling in OPERA Cloud?,1. Wake-up call functionality must be enabled at the property level. 2. The reservation must be in InHouse status. 3. Wake-up calls are managed per reservation using POST/PUT/DELETE on the wakeUpCalls endpoint. 4. The interface system must have permissions to manage wake-up calls.,The 'Wake-Up Call' configuration is found under 'Settings' > 'Housekeeping' > 'Wake-Up Calls'. This setting controls whether wake-up calls are automatically scheduled for late-checkout guests.,,
+17,config_advisory,What OPERA Control must be active to enable the guest service status feature for housekeeping?,"The 'Guest Service Status' OPERA Control must be active. This enables tracking of guest service preferences and room servicing status, allowing guests to indicate whether they want their room serviced or prefer privacy (Do Not Disturb / Make Up Room).",The 'Guest Service Status' OPERA Control must be active in OPERA Cloud Administration > Enterprise > OPERA Controls.,,
+18,config_advisory,What are the prerequisites for posting charges to a guest's reservation?,The reservation must be in InHouse status (guest must be checked in). The transaction code for the charge must be configured. The posting user/system must have appropriate permissions.,"To post charges to a guest's reservation using the Oracle OPERA Cloud PMS, several prerequisites must be met. Here are the key requirements:
+
+1. **API Access**: Ensure that the system has the necessary API access to the OPERA Cloud PMS. This typically involves having the correct OAuth2 credentials and API keys.
+
+2. **Correct API Endpoint**: Use the correct API endpoint for posting charges. The endpoint for posting charges to a guest's reservation is:
+   ```
+   POST /reservations/{reservationId}/charges
+   ```
+   Replace `{reservationId}` with the actual reservation ID you are working with.
+
+3. **Authorization**: The request must be properly authorized. This involves including the necessary OAuth2 token in the request headers. The header should look something like:
+   ```
+   Authorization: Bearer <your_access_token>
+   ```
+
+4. **Request Body**: The request body should contain the charge details. This typically includes:
+   - `amount`: The amount of the charge.
+   - `description`: A description of the charge.
+   - `date`: The date when the charge was made.
+   - `tax`: Whether the charge is taxable.
+   - `type`: The type of charge (e.g., room, food, beverage).
+
+   Example request body:
+   ```json
+   {
+     ""amount"": 100.00,
+     ""description"": ""Room service charge"",
+     ""date"": ""2023-10-01"",
+     ""tax"": true,
+     ""type"": ""room""
+   }
+   ```
+
+5. **Configuration Settings**: Ensure that the necessary configuration settings in the OPERA Cloud PMS are correctly set up. For example, the system should be configured to allow posting of charges to reservations. This might involve checking settings related to financial transactions and ensuring that the appropriate permissions are granted.
+
+6. **Error Handling**: Implement proper error handling to manage any issues that may arise during the API call. This includes checking the response status code and handling any errors or exceptions that may be returned.
+
+By ensuring these prerequisites are met, you can successfully post charges to a guest's reservation using the Oracle OPERA Cloud PMS API.",,
+19,api_orchestration,How do you retrieve a guest profile using the OPERA Cloud API?,GET /crm/v1/guests/{guestId} using getGuest or GET /crm/v1/guests to search with query parameters using getGuests,"**GET** `/crm/v1/profiles/{profileId}`
+
+This is the primary OPERA Cloud / OHIP endpoint to retrieve a guest (or other) profile by its OPERA profile ID.
+
+### Prerequisites
+- Valid OHIP OAuth2 access token (client credentials flow).
+- OHIP application key.
+- Hotel ID (property code) the profile is being accessed in context of.
+- The OPERA `profileId` (internal ID, not the membership number or name).
+
+### Request
+```http
+GET /crm/v1/profiles/{profileId}?fetchInstructions=Profile&fetchInstructions=Address&fetchInstructions=Communication&fetchInstructions=NegotiatedRates
+Host: {your-ohip-host}
+Authorization: Bearer {access_token}
+x-app-key: {your-app-key}
+x-hotelid: {hotelId}
+Content-Type: application/json
+```
+
+#### Path parameter
+| Parameter   | Type   | Required | Description                          |
+|-------------|--------|----------|--------------------------------------|
+| `profileId` | string | Yes      | OPERA internal profile ID            |
+
+#### Important query parameter
+- **`fetchInstructions`** (repeatable): Controls which profile sections are returned. Common values:
+  - `Profile`
+  - `Address`
+  - `Communication`
+  - `Correspondence`
+  - `Preference`
+  - `Membership`
+  - `NegotiatedRates`
+  - `Keywords`
+  - `SalesInfo`
+  - `ProfileRelationships`
+  - `Comments`
+  - `GdsNegotiateRates`
+  - etc.
+
+  If you omit `fetchInstructions`, you typically receive only a minimal profile payload. Always specify what you need.
+
+### Example (cURL)
+```bash
+curl -X GET \
+  'https://{host}/crm/v1/profiles/123456?fetchInstructions=Profile&fetchInstructions=Address&fetchInstructions=Communication&fetchInstructions=Membership' \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...' \
+  -H 'x-app-key: your-app-key' \
+  -H 'x-hotelid: HOTEL1' \
+  -H 'Content-Type: application/json'
+```
+
+### Response (high level)
+HTTP `200 OK` with a JSON body containing a `profileDetails` (or equivalent) object, including:
+- Profile type / status
+- Name (first, last, title, etc.)
+- Addresses, phones, emails (if fetched)
+- Memberships
+- Preferences
+- Custom fields / protected fields (depending on configuration and entitlements)
+- Links / casual / negotiated rate info (if fetched)
+
+### Related useful operations
+| Goal                         | Method & Path                                      |
+|-----------------------------|-----------------------------------------------------|
+| Search profiles             | `GET /crm/v1/profiles` or `POST /crm/v1/profiles/search` (depending on OHIP version/spec) |
+| Create profile              | `POST /crm/v1/profiles`                            |
+| Update profile              | `PUT /crm/v1/profiles/{profileId}`                 |
+| Get profile by external ID  | Often via search + `profileExternalReferences` or specific external reference parameters |
+| Company / Travel Agent / Source / Group profiles | Same endpoint; profile type distinguishes them |
+
+### Practical tips / troubleshooting
+1. **404 / not found** — Confirm the `profileId` exists and that the `x-hotelid` context can see it (central vs property profile ownership and sharing rules matter).
+2. **Empty or sparse response** — Add the appropriate `fetchInstructions`.
+3. **Authorization errors** — Ensure the OHIP app has the CRM / Profile entitlements and that the hotel is in scope.
+4. **Profile ID vs other identifiers** — Membership number, passport, corporate ID, etc. are not path parameters; use **search** first, then call GET by `profileId`.
+5. **Streaming / large payloads** — For very complete profiles (many memberships, relationships, comments), be deliberate with `fetchInstructions` to avoid oversized responses.
+6. **Sandbox vs Production** — Host, app-key, and hotel IDs differ; use the correct OHIP gateway environment.
+
+### Official documentation references
+In the Oracle Hospitality Integration Platform (OHIP) Developer Portal / API specs, look under:
+- **CRM** → **Profiles** → **getProfile** (or “Retrieve a profile”)
+- Also review the **Profile Search** operations and the `fetchInstructions` enumeration for your exact OPERA Cloud / OHIP version.
+
+If you need the search-by-name/email/membership pattern, create/update examples, or how to resolve a profile from a reservation (`reservationId` → profile), provide more detail and I can walk through the exact orchestration.",,
+20,api_orchestration,"A housekeeping management system needs to: get the current room conditions, update dirty rooms to clean after inspection, and then regenerate task sheets for remaining work. What is the API sequence?",1. GET /hsk/v1/hotels/{hotelId}/roomConditions (getRoomConditions) to fetch current room states. 2. PUT /hsk/v1/hotels/{hotelId}/rooms/{roomId}/condition (setRoomCondition) for each inspected room to set condition to Clean/Inspected. 3. POST /hsk/v1/hotels/{hotelId}/taskSheets/autoGenerate (autoGenerateTaskSheets) to regenerate task sheets for remaining dirty rooms.,1. Get room conditions: GET /hsk/v1/hotels/{hotelId}/rooms/status — getRoomStatuses. 2. Inspect dirty rooms: PUT /hsk/v1/hotels/{hotelId}/rooms/inspect — putRoomInspection. 3. Update room status after inspection: PUT /hsk/v1/hotels/{hotelId}/rooms/status — putRoomStatus. 4. Get updated room conditions: GET /hsk/v1/hotels/{hotelId}/rooms/status — getRoomStatuses. 5. Generate new task sheets: POST /hsk/v1/hotels/{hotelId}/houseKeepingTasks — postHouseKeepingTasks.,,
+21,troubleshooting,A hotel reports that their HSIA (high-speed internet) integration is intermittently failing to verify guests. The integration uses room number and last name to look up reservations before granting internet access. What could be causing the failures?,"1. Multiple reservations in the same room (shared rooms/suites) — the lookup returns multiple matches. 2. Guest name mismatch — name on reservation differs from what guest enters (shortened names, special characters, aliases). 3. Walk-in guests may not have the correct name on file. 4. Room moves — guest was moved to a different room but the system has the old room number. 5. Early checkout/late checkout timing — reservation may have been checked out. 6. The reservation search API may be case-sensitive or require exact matching.","**Intermittent HSIA guest verification failures (room number + last name lookup) most often come from timing/status mismatches, name/room matching edge cases, search API behavior, or token/rate-limit issues rather than a permanent configuration break.**
+
+### Most Likely Causes
+1. **Reservation status / timing window**  
+   Many HSIA integrations only succeed on **In House** (or sometimes Checked In + certain due-in) reservations.  
+   - Guest tries to connect before front desk completes check-in → no match.  
+   - Guest tries after checkout (or after a short grace period) → no match.  
+   - Room assigned late, or day-use / early check-in / late checkout edge cases.  
+   This produces classic intermittent behavior tied to arrival/departure rushes.
+
+2. **Name matching realities**  
+   Lookups using surname + room are brittle:
+   - Special characters, accents, hyphens, apostrophes, suffixes (Jr, III), or transliteration differences.
+   - Primary guest vs sharer/accompanying guest last name (integration only checks the primary).
+   - Truncated or normalized names in OPERA vs what the guest enters on the captive portal.
+   - Multiple guests in the room with different surnames; search returns 0 or ambiguous results.
+   - Corporate/travel-agent name on the reservation instead of the arriving guest.
+
+3. **Room number handling**  
+   - Leading zeros, formatting (e.g., “101” vs “0101”), or suite/component room vs physical room key.
+   - Room not yet assigned at lookup time.
+   - Connecting rooms, move rooms in progress, or pseudo-rooms.
+   - Guest moved rooms but HSIA cache or session still has the old room.
+
+4. **How the search is performed (OHIP/OPERA Cloud Reservation APIs)**  
+   Typical calls look like:  
+   `GET /rsv/v1/hotels/{hotelId}/reservations` (or the by-criteria variant) with query parameters such as `roomNumber` / `roomId`, `surname` / `name`, and crucially `reservationStatuses` (e.g., `INHOUSE`).  
+   Common intermittent problems:
+   - Missing or overly restrictive status filter.
+   - Not handling zero results vs multiple results (pagination / `links`).
+   - Search index or eventual-consistency lag right after check-in/room move.
+   - Incorrect or missing headers (`x-hotelid`, `x-app-key`, authorization).
+   - Using a broad `searchText` instead of explicit room + surname parameters, or vice versa.
+   - HotelId / chain context wrong on some requests (multi-property or hub setups).
+
+5. **Auth, throttling, and platform behavior**  
+   - OAuth token expiry or refresh race → intermittent 401s.  
+   - OHIP rate limits (429) during peak check-in or when many portals poll.  
+   - Environment mix-up (UAT credentials/URL against production hotel) that only surfaces under certain loads.  
+   - Gateway/network timeouts between HSIA provider and OHIP that appear as “guest not found.”
+
+6. **OPERA Cloud side configuration / data**  
+   - Interface or “internet allowed” style controls, VIP/privacy flags, or profile restrictions suppressing the reservation in the search response.  
+   - Reservation type, market code, or block that the integration does not treat as valid.  
+   - Sharers, accompanying guests, or multi-room reservations not returned the way a simple room+name query expects.  
+   - Property parameter or LOV differences (room numbering, name display formats).
+
+### Troubleshooting Steps
+- **Capture failing vs successful calls** in OHIP API logs / HSIA logs: full request URL + query params, `x-hotelid`, response status, body (especially 200 with zero reservations vs 4xx/5xx). Note exact timestamp and room/name used.
+- Reproduce in Postman/OHIP with the same `hotelId`, room number, surname, and status filters. Compare with the reservation as shown in OPERA Cloud UI (status, primary name, room, sharers).
+- Confirm the reservation is In House, room is assigned, and the surname the guest types exactly matches the primary (or intended) guest on the reservation at that moment.
+- Test edge cases: just-checked-in, just-moved, sharer last name, special characters, leading-zero rooms, post-checkout.
+- Check token lifetime/refresh logic and any 429/401 patterns.
+- Verify the integration is using the current RSV API contract (correct path, parameters, and headers) and is not relying on stale cached search results.
+- On the OPERA side, review the reservation for unusual types, privacy, or interface-related flags; confirm no recent changes to name formats, room numbering, or HSIA-related parameters.
+
+### Quick Mitigations Many Sites Use
+- Restrict portal attempts to a sensible window (e.g., after expected check-in time, short post-checkout grace).  
+- Normalize input (trim, uppercase, strip common punctuation) before calling the API.  
+- Prefer explicit `roomNumber` + `surname` + `reservationStatuses=INHOUSE` (and handle multiple matches safely).  
+- Fall back to a secondary lookup (confirmation number, arrival date + name, or last name only with tighter filters) when room+name returns nothing.  
+- Surface a clear “not checked in yet / see front desk” message instead of a generic failure.  
+- Ensure robust token refresh and retry with back-off on 429/5xx.
+
+If you can share the exact endpoint + parameters the HSIA vendor is calling, sample success/failure response bodies (redacted), and whether failures cluster at check-in/checkout times, the root cause can usually be narrowed to one of the above quickly.",,
+22,api_orchestration,How do you retrieve a guest profile using the OPERA Cloud API?,GET /crm/v1/guests/{guestId} using getGuest or GET /crm/v1/guests to search with query parameters using getGuests,"**GET /crm/v1/guests/{guestId}**  
+(OperationId: `getGuestProfile`)
+
+### Purpose
+Use this CRM API to retrieve all data stored for a guest profile (address, phone, preferences, memberships, etc.).
+
+### Requirements
+- You must already know the guest’s **Profile ID** (`guestId`).
+- If you do not know it, first call the `getGuests` API to search and obtain the ID.
+
+### Key Parameters
+| Name | In | Type | Required | Description |
+|------|----|------|----------|-------------|
+| `guestId` | path | string | **Yes** | Unique OPERA internal ID for the guest/contact/employee profile |
+| `hotelId` | query | string | No | Hotel code to filter hotel-specific profile information |
+| `fetchInstructions` | query | array | No | e.g. Room Ownership information associated with the profile |
+| `x-externalsystem` | header | string | No | External system code |
+
+### Response (high level)
+Returns an object containing:
+- `guestIdList`
+- `externalReferences`
+- `guestDetails` (customer, addresses, telephones, emails, preferences, memberships, negotiated rates, privacy info, UDFs, etc.)
+- `links`
+- `warnings`
+
+### Common error codes
+400, 401, 403, 404, 405, 406, 413, 414, 415, 500, 502, 503",,
+23,api_orchestration,What API call retrieves all in-house reservations for a given hotel?,GET /rsv/v1/hotels/{hotelId}/reservations with query parameter reservationStatuses=InHouse,"**GET /rsv/v1/hotels/{{HotelId}}/reservations**
+
+This is the hotel-scoped reservations search endpoint (module: Reservations / RSV). The Postman example explicitly labeled “get Hotel Reservations -> Inhouse Reservations” uses this call.
+
+Relevant query parameters from that example:
+- `unlinkedOnly=false`
+- `actualDepartures=false`
+- `complimentaryReservations=false`
+- `arrivalStartDate` / `arrivalEndDate` (date range)
+- `allowedReservationActions` (repeated: FacilitySchedule, PreCharge, PostCharge, PostToNoShowCancel, HouseKeeping)
+
+**Notes from the broader `getReservations` spec (GET /rsv/v1/reservations):**
+- You can also target in-house via `searchType`/`searchTypes` values such as `InHouse` (or related flags like `stayovers`, `actualArrivals`, `stayDate`).
+- The hotel-specific path above is the one shown for the in-house Postman scenario; the non-hotel path supports a `hotelIds` array instead of a path parameter.
+
+Path parameter: `HotelId` (required).  
+Optional header: `x-externalsystem`.",,
+24,api_orchestration,What is the complete API workflow for: Create Share Reservations? List all required API calls in order.,"The required API sequence is:
+1. Create a new reservation: POST /rsv/v1/hotels/{{HotelId}}/reservations
+2. Create a second reservation: POST /rsv/v1/hotels/{{HotelId}}/reservations
+3. post Combine Share Reservations: POST /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shares
+4. put Share Rate Amount: PUT /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shareRateAmount
+5. get Share Reservations: GET /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shares
+6. delete Share Reservation: DELETE /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shares","**Create Share Reservations – Complete API Workflow (6 steps)**
+
+1. **Create a new reservation**  
+   `POST /rsv/v1/hotels/{{HotelId}}/reservations`
+
+2. **Create a second reservation**  
+   `POST /rsv/v1/hotels/{{HotelId}}/reservations`
+
+3. **Combine Share Reservations**  
+   `POST /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shares`
+
+4. **Set Share Rate Amount**  
+   `PUT /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shareRateAmount`
+
+5. **Get Share Reservations**  
+   `GET /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shares`
+
+6. **Delete Share Reservation**  
+   `DELETE /rsv/v1/hotels/{{HotelId}}/reservations/{{ReservationId}}/shares`
+
+This matches the Oracle Hospitality property workflow collection for Create Share Reservations. Steps 1–2 create the two reservations to be shared; step 3 combines them; step 4 sets rate distribution; step 5 verifies the share; step 6 removes the share (cleanup/teardown in the sample workflow).",,

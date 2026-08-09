@@ -1,0 +1,170 @@
+[
+  {
+    "item": 1,
+    "task_id": "hsk-cfg-001",
+    "config": "3B-RAG",
+    "judge_score": 3,
+    "judge_reason": "Covers most conditions accurately but omits Out of Order/Out of Service, adds non-matching Turndown, and ignores the required API references."
+  },
+  {
+    "item": 2,
+    "task_id": "ug-cfg-025",
+    "config": "API-ceiling-RAG",
+    "judge_score": 4,
+    "judge_reason": "Names the exact correct OPERA Control and valid navigation path; omits the functional description present in the expected answer."
+  },
+  {
+    "item": 3,
+    "task_id": "ug-tbl-006",
+    "config": "3B-base-req",
+    "judge_score": 1,
+    "judge_reason": "Generated answer hallucinates nonexistent OPERA controls and API endpoints while completely missing the required 'Back-to-Back Handling for Linked Reservations' control, linking requirement, and other specifics in the expected answer."
+  },
+  {
+    "item": 4,
+    "task_id": "ug-cfg-025",
+    "config": "3B-RAG-req",
+    "judge_score": 5,
+    "judge_reason": "Names the exact correct OPERA Control and adds valid location detail without any errors or omissions of the core requirement."
+  },
+  {
+    "item": 5,
+    "task_id": "ug-cfg-025",
+    "config": "3B-base-req",
+    "judge_score": 3,
+    "judge_reason": "Names the correct OPERA Control but provides only generic steps and hypothetical paths without specifics, per config_advisory guidelines."
+  },
+  {
+    "item": 6,
+    "task_id": "fof-tbl-003",
+    "config": "API-ceiling-RAG",
+    "judge_score": 1,
+    "judge_reason": "Generated answer refuses to address the question or identify any root causes, instead claiming insufficient context and requesting unrelated API details."
+  },
+  {
+    "item": 7,
+    "task_id": "hsk-cfg-001",
+    "config": "API-ceiling-RAG",
+    "judge_score": 4,
+    "judge_reason": "Covers all expected room conditions (Clean/Dirty/Inspected/Pickup/OO/OS) with additional correct related statuses and controls; minor omission of the specific get/setRoomConditions APIs mentioned in expected."
+  },
+  {
+    "item": 8,
+    "task_id": "fof-orch-003",
+    "config": "3B-base",
+    "judge_score": 1,
+    "judge_reason": "Wrong API path and endpoint (hallucinated /api/v1/.../folio instead of correct /fof/v1/.../folios) so max score 2 per guidelines, but fully incorrect for the task."
+  },
+  {
+    "item": 9,
+    "task_id": "ug-tbl-006",
+    "config": "7B-RAG",
+    "judge_score": 2,
+    "judge_reason": "Mentions correct OPERA Control name but reverses the required action (suggests deactivate instead of activate) and omits all other required conditions like linking reservations and folio rules."
+  },
+  {
+    "item": 10,
+    "task_id": "crm-orch-002",
+    "config": "7B-RAG",
+    "judge_score": 4,
+    "judge_reason": "Correctly identifies primary GET /crm/v1/guests/{guestId} endpoint and parameters with extra accurate details, but omits the secondary search endpoint from expected answer."
+  },
+  {
+    "item": 11,
+    "task_id": "rsv-orch-001",
+    "config": "3B-LoRA",
+    "judge_score": 1,
+    "judge_reason": "Completely wrong API path and operation name with no relation to the expected /rsv/v1 endpoint or query parameter."
+  },
+  {
+    "item": 12,
+    "task_id": "ug-tbl-009",
+    "config": "API-ceiling-RAG",
+    "judge_score": 4,
+    "judge_reason": "Covers core root cause (Housekeeping Credits control + missing/identical room-level credits for suites vs standards) with accurate details, but omits expected mentions of Advanced Task Sheet and attendant capacity while adding plausible extra modes."
+  },
+  {
+    "item": 13,
+    "task_id": "auth-orch-001",
+    "config": "7B-RAG",
+    "judge_score": 5,
+    "judge_reason": "Matches expected answer exactly on all three required headers with correct names, values, and descriptions."
+  },
+  {
+    "item": 14,
+    "task_id": "rsv-tbl-001",
+    "config": "3B-RAG",
+    "judge_score": 4,
+    "judge_reason": "Covers all 4 expected root causes with accurate details plus valid extras, but includes some generic config advice."
+  },
+  {
+    "item": 15,
+    "task_id": "api-tbl-009",
+    "config": "API-ceiling",
+    "judge_score": 5,
+    "judge_reason": "Covers all expected points (backoff+jitter, Retry-After, batching/delta, rate-limit review, local caching) plus accurate extras; no hallucinations or critical omissions."
+  },
+  {
+    "item": 16,
+    "task_id": "wf-cfg-010",
+    "config": "3B-LoRA",
+    "judge_score": 1,
+    "judge_reason": "Generated answer invents a nonexistent menu path and wrong functionality (late-checkout), missing every point in the expected answer about property enablement, InHouse status, wakeUpCalls API, and interface permissions."
+  },
+  {
+    "item": 17,
+    "task_id": "ug-cfg-025",
+    "config": "3B-LoRA-RAG",
+    "judge_score": 5,
+    "judge_reason": "Names the exact required OPERA Control and adds a correct (non-hallucinated) navigation path, fully satisfying the config_advisory criterion."
+  },
+  {
+    "item": 18,
+    "task_id": "fof-cfg-001",
+    "config": "7B-base",
+    "judge_score": 2,
+    "judge_reason": "Generated answer misses all key prerequisites (InHouse status, transaction code config) and hallucinates irrelevant API details instead of addressing the config advisory question."
+  },
+  {
+    "item": 19,
+    "task_id": "crm-orch-002",
+    "config": "API-ceiling",
+    "judge_score": 2,
+    "judge_reason": "Wrong API path (/profiles vs expected /guests) violates critical path accuracy rule for api_orchestration, though method and general profile retrieval concept are similar."
+  },
+  {
+    "item": 20,
+    "task_id": "hsk-orch-005",
+    "config": "3B-LoRA-RAG",
+    "judge_score": 2,
+    "judge_reason": "All API paths and operations are incorrect/hallucinated (wrong endpoints like /rooms/status and /houseKeepingTasks), violating critical requirement for accurate paths in API orchestration, despite vaguely similar high-level sequence."
+  },
+  {
+    "item": 21,
+    "task_id": "fof-tbl-003",
+    "config": "API-ceiling",
+    "judge_score": 5,
+    "judge_reason": "Covers all expected root causes (timing/status, name mismatches, room moves, multiple reservations, API matching) plus accurate technical details without errors or omissions."
+  },
+  {
+    "item": 22,
+    "task_id": "crm-orch-002",
+    "config": "API-ceiling-RAG",
+    "judge_score": 4,
+    "judge_reason": "Correct path/method and covers both retrieval options with extra valid details, but uses inexact operationId getGuestProfile instead of getGuest."
+  },
+  {
+    "item": 23,
+    "task_id": "rsv-orch-001",
+    "config": "API-ceiling-RAG",
+    "judge_score": 3,
+    "judge_reason": "Correct path/method but misses the required reservationStatuses=InHouse parameter and lists unrelated/incorrect filters instead."
+  },
+  {
+    "item": 24,
+    "task_id": "wf-orch-010",
+    "config": "API-ceiling-RAG",
+    "judge_score": 5,
+    "judge_reason": "Generated answer matches expected sequence exactly with identical methods and paths for all 6 steps."
+  }
+]
