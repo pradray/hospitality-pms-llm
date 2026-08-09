@@ -98,19 +98,22 @@ def main():
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     all_results = []
+    output_path = RESULTS_DIR / f"eval_{args.split}_{timestamp}.jsonl"
 
+    # Append after every config rather than writing once at the end: a full matrix
+    # run is ~1 h of GPU time, and a process kill partway through used to discard
+    # every completed config with it.
     for config_name in config_names:
         try:
             results = run_config(config_name, tasks)
             all_results.extend(results)
+            with open(output_path, "a") as f:
+                for r in results:
+                    f.write(json.dumps(r) + "\n")
+            print(f"  saved {len(results)} results for {config_name} → {output_path.name}")
         except Exception as e:
             print(f"\n  ERROR running {config_name}: {e}")
             continue
-
-    output_path = RESULTS_DIR / f"eval_{args.split}_{timestamp}.jsonl"
-    with open(output_path, "w") as f:
-        for r in all_results:
-            f.write(json.dumps(r) + "\n")
 
     print(f"\n{'='*60}")
     print(f"Results: {len(all_results)} total → {output_path}")
