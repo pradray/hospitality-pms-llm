@@ -7,6 +7,7 @@ Usage:
 
 import argparse
 import json
+import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +16,18 @@ from rag_pipeline import RAGPipeline, EVAL_CONFIGS
 
 PROJECT_ROOT = Path(__file__).parent.parent
 RESULTS_DIR = PROJECT_ROOT / "output" / "eval_results"
+
+
+def _load_env():
+    """API-backed configs (the frontier ceiling) need their key in the
+    environment; only score_results.py used to read .env."""
+    env_path = PROJECT_ROOT / ".env"
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, val = line.split("=", 1)
+                os.environ.setdefault(key.strip(), val.strip())
 
 
 def load_benchmark(path: str) -> list[dict]:
@@ -71,6 +84,7 @@ def main():
                         help="Benchmark split (default: dev). Sets benchmark path if --benchmark not given.")
     parser.add_argument("--limit", type=int, help="Limit number of tasks (for quick testing)")
     args = parser.parse_args()
+    _load_env()
 
     if args.benchmark:
         benchmark_path = args.benchmark

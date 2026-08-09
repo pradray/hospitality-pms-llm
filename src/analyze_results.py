@@ -38,8 +38,27 @@ POSTMAN_CHUNKS = OUTPUT_DIR / "postman_chunks" / "all_postman_chunks.jsonl"
 SEED = 42
 N_BOOT = 10000
 
-# OHIP paths look like /rsv/v1/..., /crm/v1/..., possibly with {placeholders}.
-PATH_RE = re.compile(r"/[a-zA-Z][\w-]*/v\d+/[\w{}/\-.]*")
+# Two ways to spot a cited endpoint. Matching only the well-formed OHIP shape
+# (/crm/v1/...) is a trap: a model that invents "/v1/guest/{guestId}/certificates"
+# — no module prefix, not a real OHIP path — would score as citing no paths at
+# all. That systematically hides the most badly hallucinated answers, so anything
+# announced with an HTTP method counts as a cited path too.
+METHOD_PATH_RE = re.compile(
+    r"\b(?:GET|POST|PUT|PATCH|DELETE)\b\s*[`'\"]?\s*(/[\w{}\-./]+)"
+)
+VERSIONED_PATH_RE = re.compile(r"/[\w{}\-.]+/v\d+/[\w{}\-./]*")
+
+
+def extract_paths(text: str) -> list[str]:
+    found = METHOD_PATH_RE.findall(text or "") + VERSIONED_PATH_RE.findall(text or "")
+    out = []
+    for p in found:
+        p = normalise_path(p)
+        # Require at least two segments and a letter, so prose fragments and bare
+        # numbers ("/2", "and/or") are not mistaken for endpoints.
+        if p.count("/") >= 2 and re.search(r"[a-z]", p) and p not in out:
+            out.append(p)
+    return out
 
 
 def normalise_path(path: str) -> str:
@@ -70,9 +89,8 @@ def load_valid_paths() -> set[str]:
 
 
 def path_stats(answer: str, valid: set[str]) -> tuple[int, int]:
-    """(total paths cited, paths that do not exist in the corpus)."""
-    paths = [normalise_path(p) for p in PATH_RE.findall(answer or "")]
-    paths = [p for p in paths if p]
+    """(distinct paths cited, those that do not exist in the corpus)."""
+    paths = extract_paths(answer)
     if not paths:
         return 0, 0
     bad = sum(1 for p in paths if p not in valid)
