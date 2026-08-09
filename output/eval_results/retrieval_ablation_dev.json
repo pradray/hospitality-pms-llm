@@ -1,0 +1,44 @@
+{
+  "multiquery@5": {
+    "path_recall": 66.07142857142857,
+    "complete_pct": 56.41025641025641,
+    "content_cov": 53.649185644379195,
+    "orch_recall": 66.97247706422019,
+    "n_with_paths": 39
+  },
+  "multiquery@10": {
+    "path_recall": 70.53571428571429,
+    "complete_pct": 58.97435897435897,
+    "content_cov": 65.39145986552035,
+    "orch_recall": 70.64220183486239,
+    "n_with_paths": 39
+  },
+  "multiquery@15": {
+    "path_recall": 80.35714285714286,
+    "complete_pct": 61.53846153846154,
+    "content_cov": 68.8158894161773,
+    "orch_recall": 80.73394495412845,
+    "n_with_paths": 39
+  },
+  "rerank@5": {
+    "path_recall": 83.92857142857143,
+    "complete_pct": 66.66666666666667,
+    "content_cov": 68.59522480891562,
+    "orch_recall": 84.40366972477064,
+    "n_with_paths": 39
+  },
+  "rerank@10": {
+    "path_recall": 85.71428571428571,
+    "complete_pct": 66.66666666666667,
+    "content_cov": 73.80403681727044,
+    "orch_recall": 86.23853211009174,
+    "n_with_paths": 39
+  },
+  "rerank@15": {
+    "path_recall": 85.71428571428571,
+    "complete_pct": 66.66666666666667,
+    "content_cov": 77.40635825080625,
+    "orch_recall": 86.23853211009174,
+    "n_with_paths": 39
+  }
+}

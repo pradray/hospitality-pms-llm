@@ -19,6 +19,7 @@ VECTORSTORE_DIR = PROJECT_ROOT / "output" / "vectorstore"
 MODELS_DIR = PROJECT_ROOT / "models"
 
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
+RERANKER_MODEL = "BAAI/bge-reranker-base"
 COLLECTION_NAME = "hospitality_pms"
 
 SYSTEM_PROMPT = """You are a hospitality technology expert specializing in Oracle OPERA Cloud PMS \
@@ -65,6 +66,13 @@ EVAL_CONFIGS = {
     # differ from the LoRA ones by fine-tuning alone.
     "3B-base-req":   {"backend": "llama_cpp", "model": "qwen2.5-3b-base-req-q4_k_m.gguf", "use_rag": False},
     "3B-RAG-req":    {"backend": "llama_cpp", "model": "qwen2.5-3b-base-req-q4_k_m.gguf", "use_rag": True},
+    # Retrieval ablations (tuned on dev; gold-path recall in brackets).
+    # Baseline dense@5 retrieves only 71% of gold API paths, so roughly a third of
+    # orchestration answers cannot be right no matter how good the generator is.
+    "3B-LoRA-RAG-k15":    {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",
+                           "use_rag": True, "top_k": 15},                      # 85%
+    "3B-LoRA-RAG-rerank": {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",
+                           "use_rag": True, "top_k": 5, "retrieval": "rerank"}, # 84% in 5 chunks
 }
 
 
@@ -92,11 +100,21 @@ class RAGPipeline:
         top_k: int = 5,
         vectorstore_dir: str | None = None,
         config_name: str = "",
+        retrieval: str = "dense",
+        rerank_pool: int = 30,
     ):
         self.backend = backend
         self.use_rag = use_rag
         self.top_k = top_k
         self.config_name = config_name
+        # "dense"  - cosine top-k, the Phase 1/2 system
+        # "rerank" - fetch rerank_pool candidates, reorder with a cross-encoder,
+        #            keep top_k. On the dev split this lifts gold-path recall from
+        #            71% to 84% at k=5, i.e. the recall of dense@25 in a fifth of
+        #            the context.
+        self.retrieval = retrieval
+        self.rerank_pool = rerank_pool
+        self._reranker = None
 
         if model_name:
             self.model_name = model_name
@@ -153,6 +171,13 @@ class RAGPipeline:
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
 
+    @property
+    def reranker(self):
+        if self._reranker is None:
+            from sentence_transformers import CrossEncoder
+            self._reranker = CrossEncoder(RERANKER_MODEL)
+        return self._reranker
+
     def retrieve(self, query: str, module_filter: str | None = None) -> list[RetrievedChunk]:
         if not self.use_rag:
             return []
@@ -163,9 +188,12 @@ class RAGPipeline:
         if module_filter:
             where_filter = {"module": module_filter}
 
+        # Over-fetch when reranking; the cross-encoder then picks the final top_k.
+        n_results = self.rerank_pool if self.retrieval == "rerank" else self.top_k
+
         results = self._collection.query(
             query_embeddings=[query_embedding],
-            n_results=self.top_k,
+            n_results=n_results,
             where=where_filter,
             include=["documents", "metadatas", "distances"],
         )
@@ -177,6 +205,12 @@ class RAGPipeline:
             results["distances"][0],
         ):
             chunks.append(RetrievedChunk(text=doc, metadata=meta, distance=dist))
+
+        if self.retrieval == "rerank" and chunks:
+            scores = self.reranker.predict([(query, c.text) for c in chunks])
+            order = sorted(range(len(chunks)), key=lambda i: -scores[i])
+            chunks = [chunks[i] for i in order[:self.top_k]]
+
         return chunks
 
     def _build_user_prompt(self, query: str, chunks: list[RetrievedChunk]) -> str:
