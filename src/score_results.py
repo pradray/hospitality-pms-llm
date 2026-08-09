@@ -72,36 +72,44 @@ def _parse_judge_json(text: str) -> dict:
     return json.loads(text)
 
 
-def score_with_anthropic(prompt: str) -> dict:
+def score_with_anthropic(prompt: str, model: str | None = None) -> dict:
     from anthropic import Anthropic
     client = Anthropic()
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model=model or "claude-sonnet-4-20250514",
         max_tokens=200,
         messages=[{"role": "user", "content": prompt}],
     )
     return _parse_judge_json(response.content[0].text)
 
 
-def score_with_openai(prompt: str) -> dict:
+def score_with_openai(prompt: str, model: str | None = None) -> dict:
     from openai import OpenAI
     client = OpenAI()
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=model or "gpt-4o-mini",
         max_tokens=200,
         messages=[{"role": "user", "content": prompt}],
     )
     return _parse_judge_json(response.choices[0].message.content)
 
 
-def score_with_grok(prompt: str) -> dict:
+# Phase 1 judged with "grok-3-mini", which xAI has since retired — the endpoint
+# no longer serves it. Judge model is now selectable via --judge-model.
+# NOTE for the write-up: because the judge model changed between Phase 1 (dev)
+# and Phase 2 (test), scores must not be compared *across* those runs. All
+# comparisons in the final results are within a single scoring run.
+GROK_JUDGE_MODEL = "grok-4.3"
+
+
+def score_with_grok(prompt: str, model: str | None = None) -> dict:
     from openai import OpenAI
     client = OpenAI(
         api_key=os.environ["XAI_API_KEY"],
         base_url="https://api.x.ai/v1",
     )
     response = client.chat.completions.create(
-        model="grok-3-mini",
+        model=model or GROK_JUDGE_MODEL,
         max_tokens=200,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -191,10 +199,14 @@ def main():
     parser.add_argument("--judge", default="grok", choices=["grok", "anthropic", "openai"], help="LLM judge backend")
     parser.add_argument("--output", help="Output path for scored results (default: auto-named)")
     parser.add_argument("--limit", type=int, help="Limit number of results to score (for testing)")
+    parser.add_argument("--judge-model", help="Override the judge model id (e.g. grok-4.3).")
     args = parser.parse_args()
 
     _load_env()
     judge_fn = {"grok": score_with_grok, "anthropic": score_with_anthropic, "openai": score_with_openai}[args.judge]
+    if args.judge_model:
+        base_fn = judge_fn
+        judge_fn = lambda prompt: base_fn(prompt, args.judge_model)
 
     all_results = []
     for path in args.results:

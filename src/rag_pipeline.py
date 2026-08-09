@@ -47,7 +47,14 @@ EVAL_CONFIGS = {
     "3B-RAG":        {"backend": "llama_cpp", "model": "qwen2.5-3b-instruct-q4_k_m.gguf", "use_rag": True},
     "7B-base":       {"backend": "llama_cpp", "model": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf", "use_rag": False},
     "7B-RAG":        {"backend": "llama_cpp", "model": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf", "use_rag": True},
-    "API-ceiling":   {"backend": "anthropic", "model": "claude-sonnet-4-20250514",         "use_rag": False},
+    # Frontier ceiling. Uses Grok because that is the only API key available for
+    # this project. CAVEAT for the write-up: the judge is also a Grok model, so
+    # this config is not judged by a fully independent model. Mitigated by scoring
+    # with a *different* Grok model than the one generating (see score_results.py
+    # --judge-model), but self-preference bias cannot be ruled out and the ceiling
+    # should be read as indicative, not as a precise upper bound.
+    "API-ceiling":     {"backend": "grok", "model": "grok-4.5", "use_rag": False},
+    "API-ceiling-RAG": {"backend": "grok", "model": "grok-4.5", "use_rag": True},
     # Phase 2 — QLoRA fine-tuned (rank 32, attention projections, 3 epochs)
     "3B-LoRA":       {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",     "use_rag": False},
     "3B-LoRA-RAG":   {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",     "use_rag": True},
@@ -136,6 +143,13 @@ class RAGPipeline:
         elif self.backend == "openai":
             from openai import OpenAI
             return OpenAI()
+        elif self.backend == "grok":
+            # xAI is OpenAI-API compatible; only the base_url and key differ.
+            from openai import OpenAI
+            return OpenAI(
+                api_key=os.environ["XAI_API_KEY"],
+                base_url="https://api.x.ai/v1",
+            )
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
 
@@ -220,7 +234,7 @@ class RAGPipeline:
             )
             return response.content[0].text
 
-        elif self.backend == "openai":
+        elif self.backend in ("openai", "grok"):
             response = self._llm.chat.completions.create(
                 model=self.model_name,
                 max_tokens=2048,
