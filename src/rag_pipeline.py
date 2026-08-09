@@ -48,9 +48,16 @@ EVAL_CONFIGS = {
     "7B-base":       {"backend": "llama_cpp", "model": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf", "use_rag": False},
     "7B-RAG":        {"backend": "llama_cpp", "model": "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf", "use_rag": True},
     "API-ceiling":   {"backend": "anthropic", "model": "claude-sonnet-4-20250514",         "use_rag": False},
-    # Phase 2 — LoRA variants (model filenames TBD after fine-tuning)
+    # Phase 2 — QLoRA fine-tuned (rank 32, attention projections, 3 epochs)
     "3B-LoRA":       {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",     "use_rag": False},
     "3B-LoRA-RAG":   {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",     "use_rag": True},
+    # Phase 2 controls — the *unmodified* base re-quantized through the same
+    # llama.cpp pipeline as the LoRA export. The stock 3B-base GGUF was quantized
+    # by Qwen with a different recipe (2.10 GB vs our 1.93 GB), so comparing it
+    # against 3B-LoRA would confound fine-tuning with quantization. These configs
+    # differ from the LoRA ones by fine-tuning alone.
+    "3B-base-req":   {"backend": "llama_cpp", "model": "qwen2.5-3b-base-req-q4_k_m.gguf", "use_rag": False},
+    "3B-RAG-req":    {"backend": "llama_cpp", "model": "qwen2.5-3b-base-req-q4_k_m.gguf", "use_rag": True},
 }
 
 
