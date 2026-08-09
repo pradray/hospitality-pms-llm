@@ -75,15 +75,28 @@ def normalise_path(path: str) -> str:
     return p.lower()
 
 
+DOC_CHUNKS = OUTPUT_DIR / "doc_chunks" / "all_doc_chunks.jsonl"
+
+
 def load_valid_paths() -> set[str]:
+    """Every API path the corpus actually attests.
+
+    Reading only the `path` metadata field misses paths that appear inside chunk
+    *text* — Postman workflow steps and User Guide examples cite endpoints that
+    are never a chunk's own path (1,874 metadata paths vs 2,725 once text is
+    included). Using the smaller set marks genuine endpoints as hallucinated, so
+    the union is the honest reference for "does this endpoint exist".
+    """
     valid = set()
-    for fn in (API_CHUNKS, POSTMAN_CHUNKS):
+    for fn in (API_CHUNKS, POSTMAN_CHUNKS, DOC_CHUNKS):
         if not fn.exists():
             continue
         with open(fn) as f:
             for line in f:
-                p = json.loads(line).get("path")
-                if p:
+                d = json.loads(line)
+                if d.get("path"):
+                    valid.add(normalise_path(d["path"]))
+                for p in VERSIONED_PATH_RE.findall(d.get("text", "") or ""):
                     valid.add(normalise_path(p))
     return valid
 
