@@ -40,6 +40,24 @@ Answer from your training knowledge. When referencing API endpoints, \
 include the HTTP method and full path where possible. When referencing \
 configuration, specify the exact setting name if you know it."""
 
+# Strict-grounding prompt. Phase 1 attributed most errors to the generator
+# ignoring retrieved context and inventing API paths, and Phase 2 answered that
+# with QLoRA. This tests the cheaper hypothesis first: that the failure is a
+# prompting problem, not a training one. If this recovers the fine-tuned model's
+# gain, the LoRA contribution needs restating.
+SYSTEM_PROMPT_RAG_STRICT = SYSTEM_PROMPT + """
+
+Answer ONLY from the provided context. Follow these rules exactly:
+
+1. Every API path you cite MUST appear verbatim in the context. Never construct,
+   guess, complete, or infer a path that is not written there.
+2. After each API path, cite the source it came from, e.g. [Source 3].
+3. If the context does not contain the endpoint, control, or setting needed to
+   answer, say so explicitly and state what is missing. An honest "the provided
+   context does not contain this" is correct and preferred over a plausible guess.
+4. Do not rely on your own knowledge of Oracle OPERA to fill gaps in the context.
+5. Quote exact OPERA Control and setting names as they are spelled in the context."""
+
 # --- Evaluation matrix configs ---
 
 EVAL_CONFIGS = {
@@ -73,6 +91,23 @@ EVAL_CONFIGS = {
                            "use_rag": True, "top_k": 15},                      # 85%
     "3B-LoRA-RAG-rerank": {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",
                            "use_rag": True, "top_k": 5, "retrieval": "rerank"}, # 84% in 5 chunks
+    "3B-LoRA-RAG-k15":    {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",
+                           "use_rag": True, "top_k": 15},
+    # Strict-grounding prompt: is the hallucination a training problem or a
+    # prompting problem? Same weights as the -req / LoRA configs, prompt only.
+    "3B-RAG-req-strict":  {"backend": "llama_cpp", "model": "qwen2.5-3b-base-req-q4_k_m.gguf",
+                           "use_rag": True, "prompt_style": "strict"},
+    "3B-LoRA-RAG-strict": {"backend": "llama_cpp", "model": "qwen2.5-3b-lora-q4_k_m.gguf",
+                           "use_rag": True, "prompt_style": "strict"},
+    # Quantisation sensitivity: does Q4 cost a 7B more than it costs a 3B? Both
+    # sizes are compared Q4 vs Q8 built from the same f16 export, so the only
+    # variable is bit width.
+    "3B-RAG-q8":          {"backend": "llama_cpp", "model": "qwen2.5-3b-base-q8_0.gguf",
+                           "use_rag": True},
+    "7B-RAG-req":         {"backend": "llama_cpp", "model": "qwen2.5-7b-base-req-q4_k_m.gguf",
+                           "use_rag": True},
+    "7B-RAG-q8":          {"backend": "llama_cpp", "model": "qwen2.5-7b-base-q8_0.gguf",
+                           "use_rag": True},
 }
 
 
@@ -102,7 +137,9 @@ class RAGPipeline:
         config_name: str = "",
         retrieval: str = "dense",
         rerank_pool: int = 30,
+        prompt_style: str = "default",
     ):
+        self.prompt_style = prompt_style
         self.backend = backend
         self.use_rag = use_rag
         self.top_k = top_k
@@ -228,6 +265,8 @@ class RAGPipeline:
         return f"Context:\n{context}\n\nQuestion: {query}"
 
     def _get_system_prompt(self) -> str:
+        if self.use_rag and self.prompt_style == "strict":
+            return SYSTEM_PROMPT_RAG_STRICT
         return SYSTEM_PROMPT_RAG if self.use_rag else SYSTEM_PROMPT_NO_RAG
 
     def query(self, question: str, module_filter: str | None = None) -> RAGResponse:
