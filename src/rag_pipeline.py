@@ -186,9 +186,12 @@ class RAGPipeline:
         if self.backend == "llama_cpp":
             from llama_cpp import Llama
             model_path = os.environ.get("LLAMA_MODEL_PATH", str(MODELS_DIR / self.model_name))
+            # 16k is enough for top-5, but 15 User Guide chunks can request 23k
+            # tokens and abort the run, so the window is overridable for
+            # long-context ablations. Qwen2.5 supports 32k natively.
             return Llama(
                 model_path=model_path,
-                n_ctx=16384,
+                n_ctx=int(os.environ.get("LLAMA_N_CTX", 16384)),
                 n_gpu_layers=-1,
                 verbose=False,
             )
