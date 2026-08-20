@@ -138,10 +138,87 @@ def score():
     print(f"\nwrote {out}")
 
 
+def cross_judge(n: int, pattern: str, model_b: str):
+    """Re-score a sample with a SECOND judge model and measure agreement.
+
+    This is a robustness check, NOT a substitute for human validation: two LLMs
+    agreeing tells you the scores are stable, not that they are correct, and both
+    judges available here are Grok models, so shared blind spots are likely.
+    Report it as inter-judge reliability and keep it clearly separate from any
+    human-agreement number.
+    """
+    import numpy as np
+    from scipy import stats
+    from sklearn.metrics import cohen_kappa_score
+
+    sys_path = Path(__file__).parent
+    import sys
+    sys.path.insert(0, str(sys_path))
+    from score_results import _load_env, score_with_grok, JUDGE_PROMPT
+
+    _load_env()
+
+    rows = []
+    for path in glob.glob(pattern):
+        with open(path) as f:
+            for line in f:
+                r = json.loads(line)
+                if r.get("score", -1) > 0:
+                    rows.append(r)
+    random.seed(SEED)
+    random.shuffle(rows)
+    sample = rows[:n]
+    print(f"Re-scoring {len(sample)} results with {model_b} ...")
+
+    a_scores, b_scores = [], []
+    for i, r in enumerate(sample, 1):
+        prompt = JUDGE_PROMPT.format(
+            category=r["category"], difficulty=r["difficulty"], module=r["module"],
+            question=r["question"], expected_answer=r["expected_answer"],
+            generated_answer=r["generated_answer"],
+        )
+        try:
+            v = score_with_grok(prompt, model_b)
+            b_scores.append(int(v["score"]))
+            a_scores.append(int(r["score"]))
+        except Exception as e:
+            print(f"  [{i}] failed: {type(e).__name__}")
+        if i % 20 == 0:
+            print(f"  {i}/{len(sample)}")
+
+    a, b = np.array(a_scores), np.array(b_scores)
+    k_lin = cohen_kappa_score(a, b, weights="linear")
+    k_quad = cohen_kappa_score(a, b, weights="quadratic")
+    rho, prho = stats.spearmanr(a, b)
+    print(f"\n=== INTER-JUDGE AGREEMENT (n={len(a)}) ===")
+    print(f"  judge A (primary)    : grok-4.3")
+    print(f"  judge B (secondary)  : {model_b}")
+    print(f"  exact agreement      : {100*(a==b).mean():.0f}%")
+    print(f"  within 1 point       : {100*(np.abs(a-b)<=1).mean():.0f}%")
+    print(f"  Cohen kappa (linear) : {k_lin:.3f}")
+    print(f"  Cohen kappa (quad)   : {k_quad:.3f}")
+    print(f"  Spearman rho         : {rho:.3f} (p={prho:.4g})")
+    print(f"  mean B - A           : {(b-a).mean():+.2f}")
+    print("\n  NOTE: both judges are Grok models. This measures stability, not")
+    print("  correctness, and does not replace expert human validation.")
+
+    out = RESULTS_DIR / "judge_cross_model.json"
+    with open(out, "w") as f:
+        json.dump({"n": len(a), "judge_a": "grok-4.3", "judge_b": model_b,
+                   "exact": float((a == b).mean()),
+                   "within1": float((np.abs(a-b) <= 1).mean()),
+                   "kappa_linear": float(k_lin), "kappa_quadratic": float(k_quad),
+                   "spearman": float(rho), "mean_bias": float((b-a).mean())}, f, indent=2)
+    print(f"\nwrote {out}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--make-sheet", action="store_true")
     ap.add_argument("--score", action="store_true")
+    ap.add_argument("--cross-judge", action="store_true",
+                    help="Inter-judge reliability with a second model.")
+    ap.add_argument("--model-b", default="grok-4.5")
     ap.add_argument("--n", type=int, default=20)
     ap.add_argument("--pattern",
                     default=str(RESULTS_DIR / "scored_eval_test_*.jsonl"))
@@ -150,8 +227,10 @@ def main():
         make_sheet(args.n, args.pattern)
     elif args.score:
         score()
+    elif args.cross_judge:
+        cross_judge(args.n, args.pattern, args.model_b)
     else:
-        ap.error("pass --make-sheet or --score")
+        ap.error("pass --make-sheet, --score or --cross-judge")
 
 
 if __name__ == "__main__":
