@@ -63,6 +63,16 @@ def make_reference_docx(dest: Path):
 
     styles = work / "word" / "styles.xml"
     t = styles.read_text()
+    # The guidelines specify no typeface. The default reference doc uses Aptos,
+    # which ships only with recent Office and has no metric-compatible substitute,
+    # so the document is pinned to Times New Roman for body text and headings -
+    # the convention in the BITS sample report - at 12pt.
+    t = re.sub(r'w:ascii="[^"]*"', 'w:ascii="Times New Roman"', t)
+    t = re.sub(r'w:hAnsi="[^"]*"', 'w:hAnsi="Times New Roman"', t)
+    t = re.sub(r'w:cs="[^"]*"', 'w:cs="Times New Roman"', t)
+    t = re.sub(r'w:eastAsia="[^"]*"', 'w:eastAsia="Times New Roman"', t)
+    t = re.sub(r'<w:sz w:val="\d+"/>', '<w:sz w:val="24"/>', t)
+    t = re.sub(r'<w:szCs w:val="\d+"/>', '<w:szCs w:val="24"/>', t)
     for sid in ("Normal", "BodyText", "FirstParagraph", "Compact"):
         pat = re.compile(r'(<w:style [^>]*w:styleId="%s".*?</w:style>)' % sid, re.S)
         m = pat.search(t)
@@ -78,6 +88,14 @@ def make_reference_docx(dest: Path):
             new = blk.replace("</w:style>", f"<w:pPr>{spacing}</w:pPr></w:style>")
         t = t.replace(blk, new)
     styles.write_text(t)
+
+    # Headings reference *theme* fonts (w:asciiTheme="majorHAnsi"), which resolve
+    # through theme1.xml, so editing styles.xml alone leaves Aptos in the headings.
+    for theme in (work / "word" / "theme").glob("theme*.xml"):
+        th = theme.read_text()
+        th = re.sub(r'(<a:(?:majorFont|minorFont)>\s*<a:latin[^>]*typeface=")[^"]*"',
+                    r'\1Times New Roman"', th)
+        theme.write_text(th)
 
     if dest.exists():
         dest.unlink()
