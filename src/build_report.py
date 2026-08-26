@@ -281,13 +281,27 @@ def heading_pages(pdf: Path, headings):
     toc_pages = {i for i, p in enumerate(pages[:start])
                  if "TABLE OF CONTENTS" in p or re.search(r"^\s*Section\s+Page\s*$", p, re.M)}
 
+    # A long heading wraps across lines in the rendered PDF, so an anchored
+    # single-line match silently misses it and the placeholder page number
+    # survives into the contents. Compare against whitespace-collapsed text too.
+    flat = [re.sub(r"\s+", " ", p).lower() for p in pages]
+
     found = {}
     for h in headings:
         label = h.strip()
-        probe = re.compile(r"^\s*" + re.escape(label) + r"\s*$", re.M)
+        probe = re.compile(r"^\s*" + re.escape(label) + r"\s*$", re.M | re.I)
+        # Match at line start, trying progressively shorter prefixes. Anchoring at
+        # the start rules out a short label such as "References" matching the same
+        # word mid-sentence, while the shorter prefixes still find a heading that
+        # the renderer wrapped over two lines.
+        probes = [probe]
+        for cut in (40, 30, 22):
+            if len(label) > cut:
+                probes.append(re.compile(r"^\s*" + re.escape(label[:cut]), re.M | re.I))
+        probes.append(re.compile(r"^\s*" + re.escape(label) + r"\b", re.M | re.I))
         hit = None
         for i in range(start, len(pages)):          # body: Arabic
-            if probe.search(pages[i]):
+            if any(pr.search(pages[i]) for pr in probes):
                 hit = str(i - start + 1)
                 break
         if hit is None:                             # front matter: roman
